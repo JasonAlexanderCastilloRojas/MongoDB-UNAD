@@ -1,0 +1,135 @@
+Consultas en MongoDB – Texto Plano
+1. Consultas Básicas
+1.1 Inserción de documentos
+
+db.Leads.insertOne({
+nombre: "Carlos Mendoza",
+email: "carlos.mendoza@example.com
+",
+telefono: "+57 3201234567",
+pais: "Colombia",
+fuente: "Facebook Ads",
+presupuesto_estimado: 1500,
+intereses: ["Marketing", "SEO"],
+estado: "Nuevo",
+campaña: "Campaña Especial 2025",
+fecha_creacion: new Date()
+});
+
+1.2 Selección de documentos
+
+Obtener todos los documentos:
+
+db.Leads.find({});
+
+Buscar un lead por email:
+
+db.Leads.find({ email: "carlos.mendoza@example.com
+" });
+
+1.3 Actualización de documentos
+
+Actualizar el estado y presupuesto de un lead:
+
+db.Leads.updateOne(
+{ email: "carlos.mendoza@example.com
+" },
+{ $set: { estado: "Contactado", presupuesto_estimado: 1800 } }
+);
+
+1.4 Eliminación de documentos
+
+Eliminar un lead por email:
+
+db.Leads.deleteOne({ email: "carlos.mendoza@example.com
+" });
+
+2. Consultas con Filtros y Operadores
+2.1 Leads con presupuesto mayor a 3000
+
+db.Leads.find({ presupuesto_estimado: { $gt: 3000 } });
+
+2.2 Leads ubicados en Colombia o México
+
+db.Leads.find({ pais: { $in: ["Colombia", "México"] } });
+
+2.3 Leads cuya fuente no sea Facebook Ads
+
+db.Leads.find({ fuente: { $ne: "Facebook Ads" } });
+
+2.4 Leads con presupuesto entre 1000 y 5000
+
+db.Leads.find({
+presupuesto_estimado: { $gte: 1000, $lte: 5000 }
+});
+
+2.5 Leads cuyo estado sea "Nuevo" y sean de Argentina
+
+db.Leads.find({
+estado: "Nuevo",
+pais: "Argentina"
+});
+
+3. Consultas de Agregación
+3.1 Cantidad de leads por país
+
+db.Leads.aggregate([
+{ $group: { _id: "$pais", total_leads: { $sum: 1 } } }
+]);
+
+3.2 Presupuesto promedio por país
+
+db.Leads.aggregate([
+{ $group: { _id: "$pais", promedio_presupuesto: { $avg: "$presupuesto_estimado" } } }
+]);
+
+3.3 Cantidad de leads por estado del embudo
+
+db.Leads.aggregate([
+{ $group: { _id: "$estado", total: { $sum: 1 } } },
+{ $sort: { total: -1 } }
+]);
+
+3.4 Suma total del presupuesto estimado
+
+db.Leads.aggregate([
+{ $group: { _id: null, suma_total_presupuesto: { $sum: "$presupuesto_estimado" } } }
+]);
+
+3.5 Cantidad de leads por campaña
+
+db.Leads.aggregate([
+{ $group: { _id: "$campaña", total: { $sum: 1 } } },
+{ $sort: { total: -1 } }
+]);
+
+3.6 Intereses más frecuentes
+
+db.Leads.aggregate([
+{ $unwind: "$intereses" },
+{ $group: { _id: "$intereses", frecuencia: { $sum: 1 } } },
+{ $sort: { frecuencia: -1 } }
+]);
+
+3.7 Presupuesto máximo y mínimo
+
+db.Leads.aggregate([
+{
+$group: {
+_id: null,
+presupuesto_maximo: { $max: "$presupuesto_estimado" },
+presupuesto_minimo: { $min: "$presupuesto_estimado" }
+}
+}
+]);
+
+3.8 Leads generados por día (compatible aunque la fecha sea texto)
+
+db.Leads.aggregate([
+{
+$group: {
+_id: { $substr: ["$fecha_creacion", 0, 10] },
+total: { $sum: 1 }
+}
+}
+]);
